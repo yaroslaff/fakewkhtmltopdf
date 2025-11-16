@@ -12,6 +12,7 @@ license = "MIT"
 authors = [
     {name = "Your Name", email = "your.email@example.com"}
 ]
+urls = {repository = "https://github.com/yaroslaff/fakewkhtmltopdf"}
 keywords = ["pdf", "html", "wkhtmltopdf", "plutoprint", "converter"]
 classifiers = [
     "Development Status :: 4 - Beta",

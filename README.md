@@ -7,13 +7,13 @@ A Python package that simulates the `wkhtmltopdf` utility, accepting the same co
 Install from a Git repository using `pipx`:
 
 ```bash
-pipx install git+https://github.com/yourusername/fakewkhtmltopdf.git
+pipx install git+https://github.com/yaroslaff/fakewkhtmltopdf.git
 ```
 
 Or install using `pip`:
 
 ```bash
-pip install git+https://github.com/yourusername/fakewkhtmltopdf.git
+pip install git+https://github.com/yaroslaff/fakewkhtmltopdf.git
 ```
 
 ## Usage
