@@ -15,6 +15,11 @@ except ImportError:
     print("Error: plutoprint is not installed. Please install it with: pip install plutoprint", file=sys.stderr)
     sys.exit(1)
 
+try:
+    from fakewkhtmltopdf import __version__
+except ImportError:
+    __version__ = "0.1.0"
+
 
 def setup_logger():
     """Set up logger to write to ~/.wkhtmltopdf.log"""
@@ -53,6 +58,9 @@ Examples:
   fakewkhtmltopdf --margin-top 20mm --margin-bottom 20mm input.html output.pdf
         '''
     )
+    
+    # Version option
+    parser.add_argument('--version', action='version', version=f'%(prog)s {__version__}')
     
     # Input and output (positional arguments like wkhtmltopdf)
     parser.add_argument('input', nargs='?', help='Input HTML file or URL')
@@ -105,6 +113,8 @@ Examples:
     parser.add_argument('--stop-slow-scripts', dest='stop_slow_scripts',
                        action='store_true', default=True,
                        help='Stop slow running javascripts (default)')
+    parser.add_argument('--javascript-delay', dest='javascript_delay', type=int,
+                       help='Wait some milliseconds for javascript to finish (default: 200)')
     parser.add_argument('--encoding', default='utf-8',
                        help='Set the default text encoding (default: utf-8)')
     parser.add_argument('--quiet', '-q', action='store_true',
@@ -140,6 +150,8 @@ Examples:
                        help='Spacing between header and content in mm')
     parser.add_argument('--header-line', dest='header_line', action='store_true',
                        help='Display line above the header')
+    parser.add_argument('--header-html', dest='header_html',
+                       help='Add a HTML file as page header')
     parser.add_argument('--footer-left', dest='footer_left',
                        help='Left aligned footer text')
     parser.add_argument('--footer-center', dest='footer_center',
@@ -150,6 +162,8 @@ Examples:
                        help='Spacing between footer and content in mm')
     parser.add_argument('--footer-line', dest='footer_line', action='store_true',
                        help='Display line above the footer')
+    parser.add_argument('--footer-html', dest='footer_html',
+                       help='Add a HTML file as page footer')
     
     # TOC (Table of Contents) - basic support
     parser.add_argument('--toc', action='store_true',
@@ -171,6 +185,8 @@ Examples:
     # Cookie and authentication
     parser.add_argument('--cookie', action='append', dest='cookies',
                        help='Set an additional cookie (repeatable), value should be url encoded.')
+    parser.add_argument('--cookie-jar', dest='cookie_jar',
+                       help='Read and write cookies from and to the supplied cookie jar file')
     parser.add_argument('--custom-header', action='append', dest='custom_headers',
                        help='Set an additional HTTP header (repeatable)')
     parser.add_argument('--custom-header-propagation', dest='custom_header_propagation',
