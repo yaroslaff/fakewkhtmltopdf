@@ -338,7 +338,22 @@ def main():
         try:
             if hasattr(plutoprint, 'Book'):
                 # Use the Book class (correct plutoprint API)
-                book = plutoprint.Book()
+                # Try to initialize with options if supported
+                book_init_options = {}
+                if not args.grayscale:
+                    # Explicitly set color mode (grayscale=False means color)
+                    book_init_options['grayscale'] = False
+                    book_init_options['color'] = True
+                    book_init_options['colorMode'] = 'color'
+                
+                # Try to create Book with options, fallback to no-args if it fails
+                try:
+                    book = plutoprint.Book(**book_init_options)
+                    if book_init_options:
+                        logger.info(f"Book initialized with options: {book_init_options}")
+                except (TypeError, ValueError):
+                    # If Book doesn't accept these options, create without them
+                    book = plutoprint.Book()
                 
                 # Track which options were actually applied
                 applied_options = []
@@ -360,6 +375,31 @@ def main():
                     except (AttributeError, TypeError):
                         pass
                 
+                # Explicitly handle grayscale/color mode
+                # Ensure color mode is enabled unless --grayscale is explicitly set
+                grayscale_set = False
+                if hasattr(book, 'set_grayscale'):
+                    try:
+                        book.set_grayscale(args.grayscale)
+                        applied_options.append(f"set_grayscale({args.grayscale})")
+                        grayscale_set = True
+                    except (AttributeError, TypeError):
+                        pass
+                elif hasattr(book, 'set_color_mode') or hasattr(book, 'set_colormode'):
+                    method_name = 'set_color_mode' if hasattr(book, 'set_color_mode') else 'set_colormode'
+                    try:
+                        getattr(book, method_name)(not args.grayscale)  # True for color, False for grayscale
+                        applied_options.append(f"{method_name}({not args.grayscale})")
+                        grayscale_set = True
+                    except (AttributeError, TypeError):
+                        pass
+                
+                # Log if grayscale was requested but couldn't be set
+                if args.grayscale and not grayscale_set:
+                    logger.info("Note: --grayscale option requested but plutoprint.Book doesn't support it")
+                elif not args.grayscale and not grayscale_set:
+                    logger.info("Note: Color mode should be default, but no explicit grayscale/color method found on Book")
+                
                 if applied_options:
                     logger.info(f"Applied to Book object: {', '.join(applied_options)}")
                 
@@ -374,8 +414,23 @@ def main():
                     book.load_html(html_content)
                 
                 # Write to PDF
+                # Try passing options if write_to_pdf supports them
                 logger.info(f"Writing PDF to: {args.output}")
-                book.write_to_pdf(args.output)
+                write_options = {}
+                if not args.grayscale:
+                    # Ensure color mode in write options if supported
+                    write_options['grayscale'] = False
+                
+                # Try with options, fallback to just output path
+                try:
+                    if write_options:
+                        book.write_to_pdf(args.output, **write_options)
+                        logger.info(f"write_to_pdf called with options: {write_options}")
+                    else:
+                        book.write_to_pdf(args.output)
+                except (TypeError, ValueError):
+                    # write_to_pdf doesn't accept keyword arguments, use positional only
+                    book.write_to_pdf(args.output)
                 
             elif hasattr(plutoprint, 'PDF'):
                 # Fallback: Try PDF class if it exists
